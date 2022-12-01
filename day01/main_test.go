@@ -1,23 +1,66 @@
 package main
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
+
+func TestSortCalories(t *testing.T) {
+	got := sortCalories([]string{
+		"1000",
+		"2000",
+		"3000",
+		"",
+		"4000",
+		"",
+		"5000",
+		"6000",
+		"",
+		"7000",
+		"8000",
+		"9000",
+		"",
+		"10000",
+	})
+	want := []int{
+		24000,
+		11000,
+		10000,
+		6000,
+		4000,
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, wanted %v", got, want)
+	}
+}
 
 func TestPart1(t *testing.T) {
-	got := part1([]string{
-		"199",
-		"200",
-		"208",
-		"210",
-		"200",
-		"207",
-		"240",
-		"269",
-		"260",
-		"263",
+	got := part1([]int{
+		24000,
+		11000,
+		10000,
+		6000,
+		4000,
 	})
-	want := 7
+	want := 24000
 
 	if got != want {
-		t.Errorf("got %d, wanted %d", got, want)
+		t.Errorf("got %v, wanted %v", got, want)
+	}
+}
+
+func TestPart2(t *testing.T) {
+	got := part2([]int{
+		24000,
+		11000,
+		10000,
+		6000,
+		4000,
+	})
+	want := 45000
+
+	if got != want {
+		t.Errorf("got %v, wanted %v", got, want)
 	}
 }
