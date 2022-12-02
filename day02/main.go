@@ -6,84 +6,36 @@ import (
 	"os"
 )
 
-func part1(lines []string) int {
+func totalScore(lines []string, scoreCard [][]int) int {
 	score := 0
 
 	for _, line := range lines {
-		if line[2] == 'X' {
-			score += 1
-
-			if line[0] == 'A' {
-				score += 3
-			} else if line[0] == 'B' {
-				score += 0
-			} else {
-				score += 6
-			}
-		} else if line[2] == 'Y' {
-			score += 2
-
-			if line[0] == 'A' {
-				score += 6
-			} else if line[0] == 'B' {
-				score += 3
-			} else {
-				score += 0
-			}
-		} else {
-			score += 3
-
-			if line[0] == 'A' {
-				score += 0
-			} else if line[0] == 'B' {
-				score += 6
-			} else {
-				score += 3
-			}
-		}
+		score += scoreCard[line[0]-'A'][line[2]-'X']
 	}
 
 	return score
 }
 
-func part2(lines []string) int {
-	score := 0
-
-	for _, line := range lines {
-		if line[2] == 'X' {
-			score += 0
-
-			if line[0] == 'A' {
-				score += 3
-			} else if line[0] == 'B' {
-				score += 1
-			} else {
-				score += 2
-			}
-		} else if line[2] == 'Y' {
-			score += 3
-
-			if line[0] == 'A' {
-				score += 1
-			} else if line[0] == 'B' {
-				score += 2
-			} else {
-				score += 3
-			}
-		} else {
-			score += 6
-
-			if line[0] == 'A' {
-				score += 2
-			} else if line[0] == 'B' {
-				score += 3
-			} else {
-				score += 1
-			}
-		}
+func part1(lines []string) int {
+	scoreCard := [][]int{
+		//X Y  Z
+		{4, 8, 3}, // A
+		{1, 5, 9}, // B
+		{7, 2, 6}, // C
 	}
 
-	return score
+	return totalScore(lines, scoreCard)
+}
+
+func part2(lines []string) int {
+	scoreCard := [][]int{
+		//X Y  Z
+		{3, 4, 8}, // A
+		{1, 5, 9}, // B
+		{2, 6, 7}, // C
+	}
+
+	return totalScore(lines, scoreCard)
 }
 
 func main() {
