@@ -10,7 +10,7 @@ Go version used:
 asdf install golang 1.19.3
 ```
 
-To run a particular day, `cd` into the folder and run:
+To run a particular day `cd` into the folder, add your input to an `input.txt` file and run:
 
 ```
 go run . < input.txt

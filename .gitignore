@@ -1,0 +1,4 @@
+# Avoid committing input files, bad actors could gather the different input files and reverse engineer the
+# input file generators used on the backend.
+# Sauce: https://www.reddit.com/r/adventofcode/comments/e7khy8/are_everyones_input_data_and_by_extension/fa13hb9/
+input.txt
