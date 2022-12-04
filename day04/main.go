@@ -42,13 +42,43 @@ func areNested(r1 Range, r2 Range) bool {
 	return r1.Min <= r2.Min && r2.Max <= r1.Max
 }
 
-func part1(lines []string) int {
+func hasOverlap(pair Pair) bool {
+	maxOfMins := -1
+	minOfMaxes := -1
+
+	if pair.Left.Min < pair.Right.Min {
+		maxOfMins = pair.Right.Min
+	} else {
+		maxOfMins = pair.Left.Min
+	}
+
+	if pair.Left.Max < pair.Right.Max {
+		minOfMaxes = pair.Left.Max
+	} else {
+		minOfMaxes = pair.Right.Max
+	}
+
+	return maxOfMins <= minOfMaxes
+}
+
+func part1(pairs []Pair) int {
 	res := 0
 
-	for _, line := range lines {
-		pair := newPair(line)
+	for _, pair := range pairs {
+		if areNested(pair.Left, pair.Right) ||
+			areNested(pair.Right, pair.Left) {
+			res++
+		}
+	}
 
-		if areNested(pair.Left, pair.Right) || areNested(pair.Right, pair.Left) {
+	return res
+}
+
+func part2(pairs []Pair) int {
+	res := 0
+
+	for _, pair := range pairs {
+		if hasOverlap(pair) {
 			res++
 		}
 	}
@@ -58,11 +88,12 @@ func part1(lines []string) int {
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	var lines []string
+	var pairs []Pair
 
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		pairs = append(pairs, newPair(scanner.Text()))
 	}
 
-	fmt.Println("Part 1:", part1(lines))
+	fmt.Println("Part 1:", part1(pairs))
+	fmt.Println("Part 2:", part2(pairs))
 }
