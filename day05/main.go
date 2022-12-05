@@ -11,46 +11,50 @@ import (
 
 type Stack []byte
 
-// IsEmpty: check if stack is empty
-func (s *Stack) IsEmpty() bool {
-	return len(*s) == 0
+func (s *Stack) Push(vals ...byte) {
+	*s = append(*s, vals...)
 }
 
-// Push a new value onto the stack
-func (s *Stack) Push(val byte) {
-	*s = append(*s, val) // Simply append the new value to the end of the stack
-}
-
-// Remove and return top element of stack. Return false if stack is empty.
-func (s *Stack) Pop() (byte, bool) {
-	if s.IsEmpty() {
-		return 0, false
+func (s *Stack) Pop(count int) ([]byte, bool) {
+	if len(*s) < count {
+		return nil, false
 	} else {
-		index := len(*s) - 1   // Get the index of the top most element.
-		element := (*s)[index] // Index into the slice and obtain the element.
-		*s = (*s)[:index]      // Remove it from the stack by slicing it off.
-		return element, true
+		index := len(*s) - count
+		elements := (*s)[index:]
+		*s = (*s)[:index]
+		return elements, true
 	}
 }
 
-// Return top element without removing it
 func (s *Stack) Peek() (byte, bool) {
-	if s.IsEmpty() {
+	if len(*s) < 1 {
 		return 0, false
 	} else {
-		index := len(*s) - 1   // Get the index of the top most element.
-		element := (*s)[index] // Index into the slice and obtain the element.
+		index := len(*s) - 1
+		element := (*s)[index]
 		return element, true
 	}
 }
 
-func parseInput(lines []string) ([]Stack, []string) {
+func computeResult(stacks []Stack) string {
+	var res []byte
+
+	for _, stack := range stacks {
+		val, _ := stack.Peek()
+		res = append(res, val)
+	}
+
+	return string(res)
+}
+
+func solve(lines []string) (string, string) {
 	// We can compute stackCount based on length and format of input lines
 	// [Z] [M] [P]
 	// 01234567890
 	// 12 / 4 = 3
 	stackCount := (len(lines[0]) + 1) / 4
-	stacks := make([]Stack, stackCount)
+	stacks1 := make([]Stack, stackCount)
+	stacks2 := make([]Stack, stackCount)
 	separatorIndex := 0
 
 	// Find the index of the empty line that separates
@@ -76,75 +80,29 @@ func parseInput(lines []string) ([]Stack, []string) {
 			crate := lines[i][j*4+1]
 
 			if crate != ' ' {
-				stacks[j].Push(crate)
+				stacks1[j].Push(crate)
+				stacks2[j].Push(crate)
 			}
 		}
 	}
 
-	return stacks, lines[separatorIndex+1:]
-}
-
-func computeResult(stacks []Stack) string {
-	var res []byte
-
-	for _, stack := range stacks {
-		val, _ := stack.Peek()
-		res = append(res, val)
-	}
-
-	return string(res)
-}
-
-func part1(lines []string) string {
-	stacks, operations := parseInput(lines)
-
 	// Perform rearrangement procedure
-	for _, op := range operations {
+	for _, op := range lines[separatorIndex+1:] {
 		var count, from, to int
 		fmt.Sscanf(op, "move %d from %d to %d", &count, &from, &to)
-		fromStack := &stacks[from-1]
-		toStack := &stacks[to-1]
 
+		// Part 1
 		for i := 0; i < count; i++ {
-			val, _ := fromStack.Pop()
-			toStack.Push(val)
+			vals, _ := stacks1[from-1].Pop(1)
+			stacks1[to-1].Push(vals...)
 		}
+
+		// Part 2
+		vals, _ := stacks2[from-1].Pop(count)
+		stacks2[to-1].Push(vals...)
 	}
 
-	return computeResult(stacks)
-}
-
-func part2(lines []string) string {
-	stacks, operations := parseInput(lines)
-
-	// Perform rearrangement procedure
-	for _, op := range operations {
-		var count, from, to int
-		fmt.Sscanf(op, "move %d from %d to %d", &count, &from, &to)
-		fromStack := &stacks[from-1]
-		toStack := &stacks[to-1]
-
-		// Use an intermediary stack to preserve the order
-		// when moving multiple elements
-		var temp Stack
-
-		for i := 0; i < count; i++ {
-			val, _ := fromStack.Pop()
-			temp.Push(val)
-		}
-
-		for {
-			val, ok := temp.Pop()
-
-			if !ok {
-				break
-			}
-
-			toStack.Push(val)
-		}
-	}
-
-	return computeResult(stacks)
+	return computeResult(stacks1), computeResult(stacks2)
 }
 
 func main() {
@@ -155,6 +113,8 @@ func main() {
 		lines = append(lines, scanner.Text())
 	}
 
-	fmt.Println("Part1:", part1(lines))
-	fmt.Println("Part2:", part2(lines))
+	p1, p2 := solve(lines)
+
+	fmt.Println("Part1:", p1)
+	fmt.Println("Part2:", p2)
 }

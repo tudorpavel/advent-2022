@@ -15,7 +15,7 @@ var exampleInput = []string{
 }
 
 func TestPart1(t *testing.T) {
-	got := part1(exampleInput)
+	got, _ := solve(exampleInput)
 	want := "CMZ"
 
 	if got != want {
@@ -24,7 +24,7 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	got := part2(exampleInput)
+	_, got := solve(exampleInput)
 	want := "MCD"
 
 	if got != want {
