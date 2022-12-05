@@ -44,7 +44,7 @@ func (s *Stack) Peek() (byte, bool) {
 	}
 }
 
-func solve(lines []string) string {
+func parseInput(lines []string) ([]Stack, []string) {
 	// We can compute stackCount based on length and format of input lines
 	// [Z] [M] [P]
 	// 01234567890
@@ -69,6 +69,10 @@ func solve(lines []string) string {
 	// corresponding stack.
 	for i := separatorIndex - 2; i >= 0; i-- {
 		for j := 0; j < stackCount; j++ {
+			// Crate letter index can be computed based on
+			// the standard format of the input.
+			// [Z] [M] [P]
+			// 01234567890
 			crate := lines[i][j*4+1]
 
 			if crate != ' ' {
@@ -77,10 +81,27 @@ func solve(lines []string) string {
 		}
 	}
 
+	return stacks, lines[separatorIndex+1:]
+}
+
+func computeResult(stacks []Stack) string {
+	var res []byte
+
+	for _, stack := range stacks {
+		val, _ := stack.Peek()
+		res = append(res, val)
+	}
+
+	return string(res)
+}
+
+func part1(lines []string) string {
+	stacks, operations := parseInput(lines)
+
 	// Perform rearrangement procedure
-	for _, line := range lines[separatorIndex+1:] {
+	for _, op := range operations {
 		var count, from, to int
-		fmt.Sscanf(line, "move %d from %d to %d", &count, &from, &to)
+		fmt.Sscanf(op, "move %d from %d to %d", &count, &from, &to)
 		fromStack := &stacks[from-1]
 		toStack := &stacks[to-1]
 
@@ -90,15 +111,40 @@ func solve(lines []string) string {
 		}
 	}
 
-	// Compute results
-	var p1 []byte
+	return computeResult(stacks)
+}
 
-	for _, stack := range stacks {
-		val, _ := stack.Peek()
-		p1 = append(p1, val)
+func part2(lines []string) string {
+	stacks, operations := parseInput(lines)
+
+	// Perform rearrangement procedure
+	for _, op := range operations {
+		var count, from, to int
+		fmt.Sscanf(op, "move %d from %d to %d", &count, &from, &to)
+		fromStack := &stacks[from-1]
+		toStack := &stacks[to-1]
+
+		// Use an intermediary stack to preserve the order
+		// when moving multiple elements
+		var temp Stack
+
+		for i := 0; i < count; i++ {
+			val, _ := fromStack.Pop()
+			temp.Push(val)
+		}
+
+		for {
+			val, ok := temp.Pop()
+
+			if !ok {
+				break
+			}
+
+			toStack.Push(val)
+		}
 	}
 
-	return string(p1)
+	return computeResult(stacks)
 }
 
 func main() {
@@ -109,7 +155,6 @@ func main() {
 		lines = append(lines, scanner.Text())
 	}
 
-	p1 := solve(lines)
-
-	fmt.Println("Part1:", p1)
+	fmt.Println("Part1:", part1(lines))
+	fmt.Println("Part2:", part2(lines))
 }
