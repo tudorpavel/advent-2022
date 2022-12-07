@@ -8,4 +8,5 @@ use (
 	./day04_alt
 	./day05
 	./day06
+	./day07
 )
