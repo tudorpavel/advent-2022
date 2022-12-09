@@ -52,25 +52,21 @@ func (p *Point) diff(other Point) Point {
 }
 
 func solve(lines []string) (int, int) {
-	deltas := map[string]Point{
-		"U": {0, 1},
-		"R": {1, 0},
-		"D": {0, -1},
-		"L": {-1, 0},
+	deltas := map[rune]Point{
+		'U': {0, 1},
+		'R': {1, 0},
+		'D': {0, -1},
+		'L': {-1, 0},
 	}
 	rope := [10]Point{}
-	p1 := 1
-	p2 := 1
-	visitedP1 := map[Point]bool{}
-	visitedP2 := map[Point]bool{}
-	visitedP1[rope[1]] = true
-	visitedP2[rope[9]] = true
+	p1 := map[Point]bool{}
+	p2 := map[Point]bool{}
 
 	for _, line := range lines {
-		var dir string
+		var dir rune
 		var steps int
 
-		fmt.Sscanf(line, "%s %d", &dir, &steps)
+		fmt.Sscanf(line, "%c %d", &dir, &steps)
 
 		for i := 0; i < steps; i++ {
 			// move head knot
@@ -81,21 +77,13 @@ func solve(lines []string) (int, int) {
 				rope[i].follow(rope[i-1])
 			}
 
-			// Part 1
-			if !visitedP1[rope[1]] {
-				p1++
-				visitedP1[rope[1]] = true
-			}
-
-			// Part 2
-			if !visitedP2[rope[9]] {
-				p2++
-				visitedP2[rope[9]] = true
-			}
+			// mark as visited
+			p1[rope[1]] = true
+			p2[rope[9]] = true
 		}
 	}
 
-	return p1, p2
+	return len(p1), len(p2)
 }
 
 func main() {
