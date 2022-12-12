@@ -11,9 +11,8 @@ accszExk
 acctuvwj
 abdefghi`
 
-var inputLines = strings.Split(exampleInput, "\n")
-
 func TestPart1(t *testing.T) {
+	inputLines := strings.Split(exampleInput, "\n")
 	got, _ := solve(inputLines)
 	want := 31
 
@@ -23,8 +22,9 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
+	inputLines := strings.Split(exampleInput, "\n")
 	_, got := solve(inputLines)
-	want := 0
+	want := 29
 
 	if got != want {
 		t.Errorf("got %v, wanted %v", got, want)

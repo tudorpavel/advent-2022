@@ -51,6 +51,35 @@ func fill(lines []string, dist *[][]int, curr Pos, step int) {
 	}
 }
 
+func part2(lines []string, dist *[][]int, end Pos) int {
+	min := len(lines) * len(lines[0])
+
+	for i, line := range lines {
+		for j, r := range line {
+			if r == 'a' {
+				// A potential starting point
+				start := Pos{i, j}
+
+				// Reset distance matrix
+				for i := range *dist {
+					for j := range (*dist)[0] {
+						(*dist)[i][j] = -1
+					}
+				}
+
+				fill(lines, dist, start, 0)
+
+				val := (*dist)[end.i][end.j]
+				if val > -1 && val < min {
+					min = val
+				}
+			}
+		}
+	}
+
+	return min
+}
+
 func solve(lines []string) (int, int) {
 	dist := make([][]int, len(lines))
 	start := Pos{}
@@ -81,8 +110,12 @@ func solve(lines []string) (int, int) {
 
 	// Part 1
 	fill(lines, &dist, start, 0)
+	p1 := dist[end.i][end.j]
 
-	return dist[end.i][end.j], 0
+	// Part 2
+	p2 := part2(lines, &dist, end)
+
+	return p1, p2
 }
 
 func main() {
