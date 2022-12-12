@@ -22,16 +22,16 @@ func (p *Pos) outOfBounds(n int, m int) bool {
 	return p.i < 0 || p.j < 0 || p.i >= n || p.j >= m
 }
 
-func fill(lines []string, dist *[][]int, curr Pos, step int) {
-	val := (*dist)[curr.i][curr.j]
+func fill(lines []string, dist [][]int, curr Pos, step int) {
+	val := dist[curr.i][curr.j]
 
 	// There's another shorter path
 	if val > -1 && val <= step {
 		return
 	}
 
-	(*dist)[curr.i][curr.j] = step
-	step++
+	// Update shortest path
+	dist[curr.i][curr.j] = step
 
 	for _, delta := range [4]Pos{{-1, 0}, {0, 1}, {1, 0}, {0, -1}} {
 		next := curr.add(delta)
@@ -42,37 +42,27 @@ func fill(lines []string, dist *[][]int, curr Pos, step int) {
 
 		c := lines[curr.i][curr.j]
 		n := lines[next.i][next.j]
-		// Next elevation is higher by more than 1
-		if c < n && n-c > 1 {
+		// Next elevation is lower by more than 1
+		if c > n && c-n > 1 {
 			continue
 		}
 
-		fill(lines, dist, curr.add(delta), step)
+		fill(lines, dist, curr.add(delta), step+1)
 	}
 }
 
-func part2(lines []string, dist *[][]int, end Pos) int {
+func part2(lines []string, dist [][]int) int {
 	min := len(lines) * len(lines[0])
 
 	for i, line := range lines {
 		for j, r := range line {
-			if r == 'a' {
-				// A potential starting point
-				start := Pos{i, j}
+			if r != 'a' {
+				continue
+			}
 
-				// Reset distance matrix
-				for i := range *dist {
-					for j := range (*dist)[0] {
-						(*dist)[i][j] = -1
-					}
-				}
-
-				fill(lines, dist, start, 0)
-
-				val := (*dist)[end.i][end.j]
-				if val > -1 && val < min {
-					min = val
-				}
+			val := dist[i][j]
+			if val > -1 && val < min {
+				min = val
 			}
 		}
 	}
@@ -108,12 +98,15 @@ func solve(lines []string) (int, int) {
 		}
 	}
 
+	// Fill in shortest distance from
+	// end down to every point
+	fill(lines, dist, end, 0)
+
 	// Part 1
-	fill(lines, &dist, start, 0)
-	p1 := dist[end.i][end.j]
+	p1 := dist[start.i][start.j]
 
 	// Part 2
-	p2 := part2(lines, &dist, end)
+	p2 := part2(lines, dist)
 
 	return p1, p2
 }
