@@ -4,11 +4,17 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"time"
 )
 
 type Pos struct {
-	i int
-	j int
+	i    int
+	j    int
+	step int
+}
+
+func (p *Pos) eql(o Pos) bool {
+	return p.i == o.i && p.j == o.j
 }
 
 func (p *Pos) add(o Pos) Pos {
@@ -22,65 +28,15 @@ func (p *Pos) outOfBounds(n int, m int) bool {
 	return p.i < 0 || p.j < 0 || p.i >= n || p.j >= m
 }
 
-func fill(lines []string, dist [][]int, curr Pos, step int) {
-	val := dist[curr.i][curr.j]
-
-	// There's another shorter path
-	if val > -1 && val <= step {
-		return
-	}
-
-	// Update shortest path
-	dist[curr.i][curr.j] = step
-
-	for _, delta := range [4]Pos{{-1, 0}, {0, 1}, {1, 0}, {0, -1}} {
-		next := curr.add(delta)
-
-		if next.outOfBounds(len(lines), len(lines[0])) {
-			continue
-		}
-
-		c := lines[curr.i][curr.j]
-		n := lines[next.i][next.j]
-		// Next elevation is lower by more than 1
-		if c > n && c-n > 1 {
-			continue
-		}
-
-		fill(lines, dist, curr.add(delta), step+1)
-	}
-}
-
-func part2(lines []string, dist [][]int) int {
-	min := len(lines) * len(lines[0])
-
-	for i, line := range lines {
-		for j, r := range line {
-			if r != 'a' {
-				continue
-			}
-
-			val := dist[i][j]
-			if val > -1 && val < min {
-				min = val
-			}
-		}
-	}
-
-	return min
-}
-
 func solve(lines []string) (int, int) {
-	dist := make([][]int, len(lines))
+	visited := make([][]bool, len(lines))
 	start := Pos{}
 	end := Pos{}
 
 	for i, line := range lines {
-		dist[i] = make([]int, len(line))
+		visited[i] = make([]bool, len(line))
 
 		for j, r := range line {
-			dist[i][j] = -1
-
 			if r == 'S' {
 				start.i = i
 				start.j = j
@@ -98,15 +54,51 @@ func solve(lines []string) (int, int) {
 		}
 	}
 
-	// Fill in shortest distance from
-	// end down to every point
-	fill(lines, dist, end, 0)
+	p1 := 0
+	p2 := len(lines) * len(lines[0])
 
-	// Part 1
-	p1 := dist[start.i][start.j]
+	// BFS
+	queue := []Pos{end}
+	for len(queue) > 0 {
+		curr := queue[0]
+		queue = queue[1:]
 
-	// Part 2
-	p2 := part2(lines, dist)
+		if visited[curr.i][curr.j] {
+			continue
+		}
+
+		visited[curr.i][curr.j] = true
+
+		if lines[curr.i][curr.j] == 'a' {
+			if curr.eql(start) {
+				p1 = curr.step
+			}
+
+			if curr.step < p2 {
+				p2 = curr.step
+			}
+
+			continue
+		}
+
+		for _, delta := range [4]Pos{{i: -1}, {i: 1}, {j: -1}, {j: 1}} {
+			next := delta.add(curr)
+			next.step = curr.step + 1
+
+			if next.outOfBounds(len(lines), len(lines[0])) {
+				continue
+			}
+
+			c := lines[curr.i][curr.j]
+			n := lines[next.i][next.j]
+			// Next elevation is lower by more than 1
+			if c > n && c-n > 1 {
+				continue
+			}
+
+			queue = append(queue, next)
+		}
+	}
 
 	return p1, p2
 }
@@ -119,8 +111,11 @@ func main() {
 		lines = append(lines, scanner.Text())
 	}
 
+	start := time.Now()
 	p1, p2 := solve(lines)
+	elapsed := time.Since(start)
 
 	fmt.Println("Part1:", p1)
 	fmt.Println("Part2:", p2)
+	fmt.Println("Execution time:", elapsed)
 }
