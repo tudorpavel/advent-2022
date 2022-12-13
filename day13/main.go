@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -98,19 +99,52 @@ func compare(left []*Node, right []*Node) int {
 	return 0
 }
 
+func less(left *Node, right *Node) bool {
+	return compare(left.children, right.children) < 1
+}
+
 func solve(lines []string) (int, int) {
+	packets := []*Node{}
+
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		packets = append(packets, NewNode(line))
+	}
+
+	// Part 1
 	p1 := 0
-
-	for i := 0; i < len(lines); i += 3 {
-		left := NewNode(lines[i])
-		right := NewNode(lines[i+1])
-
-		if compare(left.children, right.children) < 1 {
-			p1 += (i / 3) + 1
+	for i := 0; i < len(packets); i += 2 {
+		if less(packets[i], packets[i+1]) {
+			p1 += (i / 2) + 1
 		}
 	}
 
-	return p1, -2
+	// Part 2
+	// Add divider packets
+	div1 := NewNode("[[2]]")
+	div2 := NewNode("[[6]]")
+	packets = append(packets, div1)
+	packets = append(packets, div2)
+
+	// Sort packets
+	sort.Slice(
+		packets,
+		func(i, j int) bool {
+			return less(packets[i], packets[j])
+		},
+	)
+
+	// Compute decoder key
+	p2 := 1
+	for i, packet := range packets {
+		if packet == div1 || packet == div2 {
+			p2 *= i + 1
+		}
+	}
+
+	return p1, p2
 }
 
 func main() {
