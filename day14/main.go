@@ -72,10 +72,15 @@ func (cave *Cave) addRocks(points []string) {
 	}
 }
 
-func (cave *Cave) addSand() bool {
+func (cave *Cave) addSand(part2 bool) bool {
 	curr := Pos{0, 500}
 
-	for curr.i < cave.maxRow {
+	// All filled up with Part 2 floor
+	if cave.rocks[curr.key()] {
+		return false
+	}
+
+	for part2 || curr.i < cave.maxRow {
 		left := Pos{curr.i + 1, curr.j - 1}
 		down := Pos{curr.i + 1, curr.j}
 		right := Pos{curr.i + 1, curr.j + 1}
@@ -83,6 +88,13 @@ func (cave *Cave) addSand() bool {
 		_, rockLeft := cave.rocks[left.key()]
 		_, rockDown := cave.rocks[down.key()]
 		_, rockRight := cave.rocks[right.key()]
+
+		// Part 2 infinite floor
+		if down.i == cave.maxRow+2 {
+			rockLeft = true
+			rockDown = true
+			rockRight = true
+		}
 
 		if !rockDown {
 			curr.i++
@@ -117,11 +129,17 @@ func solve(lines []string) (int, int) {
 
 	// Part 1
 	p1 := 0
-	for cave.addSand() {
+	for cave.addSand(false) {
 		p1++
 	}
 
-	return p1, -2
+	// Part 2
+	p2 := p1 // continue where Part 1 left off
+	for cave.addSand(true) {
+		p2++
+	}
+
+	return p1, p2
 }
 
 func main() {

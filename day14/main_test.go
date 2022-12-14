@@ -20,7 +20,7 @@ func TestPart1(t *testing.T) {
 
 func TestPart2(t *testing.T) {
 	_, got := solve(inputLines)
-	want := -2
+	want := 93
 
 	if got != want {
 		t.Errorf("got %v, wanted %v", got, want)
