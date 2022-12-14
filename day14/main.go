@@ -13,18 +13,17 @@ type Pos struct {
 	j int
 }
 
-func (p *Pos) key() string {
-	return fmt.Sprintf("%d,%d", p.i, p.j)
-}
-
 type Cave struct {
-	rocks  map[string]bool
+	rocks  [][]bool
 	maxRow int
 }
 
 func NewCave() Cave {
 	c := Cave{}
-	c.rocks = make(map[string]bool)
+	c.rocks = make([][]bool, 500)
+	for i := range c.rocks {
+		c.rocks[i] = make([]bool, 1000)
+	}
 	return c
 }
 
@@ -60,7 +59,7 @@ func (cave *Cave) addRocks(points []string) {
 			} else {
 				p = Pos{start.i, s}
 			}
-			cave.rocks[p.key()] = true
+			cave.rocks[p.i][p.j] = true
 
 			if s < e {
 				s++
@@ -68,7 +67,7 @@ func (cave *Cave) addRocks(points []string) {
 				s--
 			}
 		}
-		cave.rocks[end.key()] = true
+		cave.rocks[end.i][end.j] = true
 	}
 }
 
@@ -76,7 +75,7 @@ func (cave *Cave) addSand(part2 bool) bool {
 	curr := Pos{0, 500}
 
 	// All filled up with Part 2 floor
-	if cave.rocks[curr.key()] {
+	if cave.rocks[curr.i][curr.j] {
 		return false
 	}
 
@@ -85,9 +84,9 @@ func (cave *Cave) addSand(part2 bool) bool {
 		down := Pos{curr.i + 1, curr.j}
 		right := Pos{curr.i + 1, curr.j + 1}
 
-		_, rockLeft := cave.rocks[left.key()]
-		_, rockDown := cave.rocks[down.key()]
-		_, rockRight := cave.rocks[right.key()]
+		rockLeft := cave.rocks[left.i][left.j]
+		rockDown := cave.rocks[down.i][down.j]
+		rockRight := cave.rocks[right.i][right.j]
 
 		// Part 2 infinite floor
 		if down.i == cave.maxRow+2 {
@@ -112,7 +111,7 @@ func (cave *Cave) addSand(part2 bool) bool {
 		}
 
 		// final sand resting place
-		cave.rocks[curr.key()] = true
+		cave.rocks[curr.i][curr.j] = true
 		return true
 	}
 
