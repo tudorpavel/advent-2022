@@ -46,6 +46,93 @@ func BuildPair(line string) Pair {
 	return res
 }
 
+// Exclude points that are within other pairs' radius,
+// it's the right beacon if it's at radius+1 from 3 other sensors
+func isTheBeacon(candidate Point, pairs []Pair) bool {
+	touchingEdges := make([]bool, len(pairs))
+
+	for i, pair := range pairs {
+		radius := pair.sensor.distance(pair.beacon)
+
+		if candidate.distance(pair.sensor) <= radius {
+			return false
+		}
+
+		if candidate.distance(pair.sensor) == radius+1 {
+			touchingEdges[i] = true
+		}
+	}
+
+	count := 0
+
+	for _, touchingOtherEdge := range touchingEdges {
+		if touchingOtherEdge {
+			count++
+		}
+	}
+
+	return count > 2
+}
+
+// For each sensor+beacon pair go around its diamond-shaped edge
+// centered at sensor and radius distance between sensor and beacon
+// and check if there's a point just outside 3 other pairs' radius
+func part2(pairs []Pair) int {
+	for i, pair := range pairs {
+		others := []Pair{}
+		others = append(others, pairs[:i]...)
+		others = append(others, pairs[i+1:]...)
+		dist := pair.sensor.distance(pair.beacon)
+
+		// top left of diamond shape
+		x := pair.sensor.x - dist - 1
+		y := pair.sensor.y
+		for x <= pair.sensor.x {
+			if isTheBeacon(Point{x, y}, others) {
+				return x*4000000 + y
+			}
+
+			x++
+			y--
+		}
+		// top right of diamond shape
+		x = pair.sensor.x
+		y = pair.sensor.y - dist - 1
+		for y <= pair.sensor.y {
+			if isTheBeacon(Point{x, y}, others) {
+				return x*4000000 + y
+			}
+
+			x++
+			y++
+		}
+		// bottom right of diamond shape
+		x = pair.sensor.x + dist + 1
+		y = pair.sensor.y
+		for x >= pair.sensor.x {
+			if isTheBeacon(Point{x, y}, others) {
+				return x*4000000 + y
+			}
+
+			x--
+			y++
+		}
+		// bottom left of diamond shape
+		x = pair.sensor.x
+		y = pair.sensor.y + dist + 1
+		for y >= pair.sensor.y {
+			if isTheBeacon(Point{x, y}, others) {
+				return x*4000000 + y
+			}
+
+			x--
+			y--
+		}
+	}
+
+	return -1
+}
+
 func solve(lines []string, checkY int) (int, int) {
 	pairs := []Pair{}
 
@@ -53,9 +140,9 @@ func solve(lines []string, checkY int) (int, int) {
 		pairs = append(pairs, BuildPair(line))
 	}
 
+	// Part 1
 	p1 := 0
-
-	for x := -10000000; x < 10000000; x++ {
+	for x := -1000000; x < 5000000; x++ {
 		candidate := Point{x, checkY}
 		for _, pair := range pairs {
 			minDistance := pair.sensor.distance(pair.beacon)
@@ -67,7 +154,10 @@ func solve(lines []string, checkY int) (int, int) {
 		}
 	}
 
-	return p1, -2
+	// Part 2
+	p2 := part2(pairs)
+
+	return p1, p2
 }
 
 func main() {
