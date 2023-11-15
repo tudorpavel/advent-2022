@@ -83,10 +83,23 @@ func pruneZeroRates(dist [][]int, rates []int) ([][]int, []int) {
 	return newDist, newRates
 }
 
-// DFS to check different paths for the max score
-func maxScore(dist [][]int, rates []int, currentIndex int, visited []bool, timeLeft int, score int, max *int) {
-	if score > *max {
-		*max = score
+func toBitstring(visited []bool) int {
+	res := 0
+
+	for i, vis := range visited {
+		if vis {
+			res |= 1 << i
+		}
+	}
+
+	return res
+}
+
+// DFS to check different subpaths and saves them in memo
+// memo is 2D array of [endIndex][visitedBitstring] = maxScore
+func maxScores(dist [][]int, rates []int, currentIndex int, visited []bool, timeLeft int, score int, memo [][]int) {
+	if score > memo[currentIndex][toBitstring(visited)] {
+		memo[currentIndex][toBitstring(visited)] = score
 	}
 
 	for i, vis := range visited {
@@ -104,8 +117,70 @@ func maxScore(dist [][]int, rates []int, currentIndex int, visited []bool, timeL
 		newVisited[i] = true
 
 		newScore := score + (newTimeLeft * rates[i])
-		maxScore(dist, rates, i, newVisited, newTimeLeft, newScore, max)
+		maxScores(dist, rates, i, newVisited, newTimeLeft, newScore, memo)
 	}
+}
+
+func computeMaxScores(dist [][]int, rates []int, startIndex int, timeLeft int) [][]int {
+	n := len(rates)
+	memo := make([][]int, n)
+	for i := range rates { // each possible end node has
+		memo[i] = make([]int, 1<<n) // 2^n possible subpaths
+	}
+	visited := make([]bool, n)
+	visited[startIndex] = true
+	maxScores(dist, rates, startIndex, visited, timeLeft, 0, memo)
+
+	return memo
+}
+
+// Search all subpath solutions for the max score
+func part1(memo [][]int) int {
+	max := 0
+	for _, row := range memo {
+		for _, score := range row {
+			if score > max {
+				max = score
+			}
+		}
+	}
+	return max
+}
+
+// part 2 solution will have 2 subpaths that overlap only
+// on the start node
+func areDisjoint(visited1 int, visited2 int, startIndex int) bool {
+	return (visited1 & visited2) == (1 << startIndex)
+}
+
+// Search pairs of subpath solutions that have disjoint visited nodes
+// and find the max pair score
+func part2(memo [][]int, startIndex int) int {
+	n := len(memo)
+	max := 0
+
+	for i := 0; i < n; i++ {
+		for visited1, score1 := range memo[i] {
+			// the solution must have 2 non-zero scores
+			if score1 == 0 {
+				continue
+			}
+
+			for j := i + 1; j < n; j++ {
+				for visited2, score2 := range memo[j] {
+					if !areDisjoint(visited1, visited2, startIndex) {
+						continue
+					}
+
+					if score1+score2 > max {
+						max = score1 + score2
+					}
+				}
+			}
+		}
+	}
+
+	return max
 }
 
 func solve(lines []string) (int, int) {
@@ -154,12 +229,14 @@ func solve(lines []string) (int, int) {
 	}
 
 	// Part 1
-	p1 := 0
-	visited := make([]bool, len(rates))
-	visited[startIndex] = true
-	maxScore(dist, rates, startIndex, visited, 30, 0, &p1)
+	memo := computeMaxScores(dist, rates, startIndex, 30)
+	p1 := part1(memo)
 
-	return p1, -2
+	// Part 2
+	memo = computeMaxScores(dist, rates, startIndex, 26)
+	p2 := part2(memo, startIndex)
+
+	return p1, p2
 }
 
 func main() {
