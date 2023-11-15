@@ -85,21 +85,18 @@ func pruneZeroRates(dist [][]int, rates []int) ([][]int, []int) {
 
 func toBitstring(visited []bool) int {
 	res := 0
-
 	for i, vis := range visited {
 		if vis {
 			res |= 1 << i
 		}
 	}
-
 	return res
 }
 
-// DFS to check different subpaths and saves them in memo
-// memo is 2D array of [endIndex][visitedBitstring] = maxScore
-func maxScores(dist [][]int, rates []int, currentIndex int, visited []bool, timeLeft int, score int, memo [][]int) {
-	if score > memo[currentIndex][toBitstring(visited)] {
-		memo[currentIndex][toBitstring(visited)] = score
+// DFS to check different subpaths and saves their best score in the subpaths map
+func maxScores(dist [][]int, rates []int, currentIndex int, visited []bool, timeLeft int, score int, subpaths map[int]int) {
+	if score > subpaths[toBitstring(visited)] {
+		subpaths[toBitstring(visited)] = score
 	}
 
 	for i, vis := range visited {
@@ -117,31 +114,26 @@ func maxScores(dist [][]int, rates []int, currentIndex int, visited []bool, time
 		newVisited[i] = true
 
 		newScore := score + (newTimeLeft * rates[i])
-		maxScores(dist, rates, i, newVisited, newTimeLeft, newScore, memo)
+		maxScores(dist, rates, i, newVisited, newTimeLeft, newScore, subpaths)
 	}
 }
 
-func computeMaxScores(dist [][]int, rates []int, startIndex int, timeLeft int) [][]int {
-	n := len(rates)
-	memo := make([][]int, n)
-	for i := range rates { // each possible end node has
-		memo[i] = make([]int, 1<<n) // 2^n possible subpaths
-	}
-	visited := make([]bool, n)
+func computeMaxScores(dist [][]int, rates []int, startIndex int, timeLeft int) map[int]int {
+	visited := make([]bool, len(rates))
 	visited[startIndex] = true
-	maxScores(dist, rates, startIndex, visited, timeLeft, 0, memo)
+	subpaths := make(map[int]int)
 
-	return memo
+	maxScores(dist, rates, startIndex, visited, timeLeft, 0, subpaths)
+
+	return subpaths
 }
 
 // Search all subpath solutions for the max score
-func part1(memo [][]int) int {
+func part1(subpaths map[int]int) int {
 	max := 0
-	for _, row := range memo {
-		for _, score := range row {
-			if score > max {
-				max = score
-			}
+	for _, score := range subpaths {
+		if score > max {
+			max = score
 		}
 	}
 	return max
@@ -155,27 +147,24 @@ func areDisjoint(visited1 int, visited2 int, startIndex int) bool {
 
 // Search pairs of subpath solutions that have disjoint visited nodes
 // and find the max pair score
-func part2(memo [][]int, startIndex int) int {
-	n := len(memo)
+func part2(subpaths map[int]int, startIndex int) int {
 	max := 0
 
-	for i := 0; i < n; i++ {
-		for visited1, score1 := range memo[i] {
-			// the solution must have 2 non-zero scores
-			if score1 == 0 {
+	// convert map to slice of pairs to select pairs using 2 for loops
+	var pairs [][2]int
+	for visited, score := range subpaths {
+		pairs = append(pairs, [2]int{visited, score})
+	}
+
+	for i := 0; i < len(pairs)-1; i++ {
+		for j := i + 1; j < len(pairs); j++ {
+			if !areDisjoint(pairs[i][0], pairs[j][0], startIndex) {
 				continue
 			}
 
-			for j := i + 1; j < n; j++ {
-				for visited2, score2 := range memo[j] {
-					if !areDisjoint(visited1, visited2, startIndex) {
-						continue
-					}
-
-					if score1+score2 > max {
-						max = score1 + score2
-					}
-				}
+			score := pairs[i][1] + pairs[j][1]
+			if score > max {
+				max = score
 			}
 		}
 	}
@@ -229,12 +218,12 @@ func solve(lines []string) (int, int) {
 	}
 
 	// Part 1
-	memo := computeMaxScores(dist, rates, startIndex, 30)
-	p1 := part1(memo)
+	subpaths := computeMaxScores(dist, rates, startIndex, 30)
+	p1 := part1(subpaths)
 
 	// Part 2
-	memo = computeMaxScores(dist, rates, startIndex, 26)
-	p2 := part2(memo, startIndex)
+	subpaths = computeMaxScores(dist, rates, startIndex, 26)
+	p2 := part2(subpaths, startIndex)
 
 	return p1, p2
 }
