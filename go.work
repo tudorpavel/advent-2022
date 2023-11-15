@@ -18,4 +18,5 @@ use (
 	./day13_alt
 	./day14
 	./day15
+	./day16
 )
